@@ -3,977 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- UPPDATERAT: Ny titel med domänen -->
-    <title>Skeppsvarv.se - Skeppa Kod Varje Månad</title>
+    <title>Skeppa.nu - Öppnar Februari 2026</title>
     
-    <!-- FONTS & ICONS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;600&family=Source+Code+Pro:wght@400&display=swap" rel="stylesheet">
+    
+    <!-- SUPABASE SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- TAILWIND -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         :root {
-            /* DARK MODE (Standard) */
+            /* DARK MODE (The Void) */
             --bg-color: #050608;
-            --text-primary: #E2E8F0;
+            --text-primary: #FFFFFF;
             --text-secondary: #94A3B8;
-            /* KRITA-UPDATE: Ökad till 0.8 för att garantera att det upplevs som VITT, inte grått */
             --chalk-line: rgba(255, 255, 255, 0.8);
             --glass-bg: rgba(12, 14, 18, 0.6);
+            --glass-blur: 12px;
             --cyan: #00D4FF;
-            --cyan-dim: rgba(0, 212, 255, 0.1);
-            --card-hover-border: rgba(255, 255, 255, 0.4);
-            --card-hover-shadow: rgba(0,0,0,0.5);
+            --btn-bg: #FFFFFF;
+            --btn-text: #050608;
+            --nebula-opacity: 0.4;
         }
 
-        /* LIGHT MODE (Blueprint) */
+        /* LIGHT MODE (The Blueprint) */
         body.light-theme {
-            --bg-color: #FDFDFD;
-            --text-primary: #0F172A; /* Slate 900 */
-            --text-secondary: #475569; /* Slate 600 */
-            --chalk-line: #CBD5E1; /* Slate 300 */
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --cyan: #0284C7; /* Sky 600 (Mörkare för kontrast) */
-            --cyan-dim: rgba(2, 132, 199, 0.1);
-            --card-hover-border: #0284C7;
-            --card-hover-shadow: rgba(2, 132, 199, 0.15);
+            --bg-color: #F0F4F8;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --chalk-line: #94A3B8; /* Mörkare linjer */
+            --glass-bg: #FFFFFF;
+            --glass-blur: 0px;
+            --cyan: #0284C7;
+            --btn-bg: #0F172A; 
+            --btn-text: #FFFFFF;
+            --nebula-opacity: 0;
+        }
+
+        /* Grundinställningar för HTML/Body för att säkra bakgrunden */
+        html {
+            background-color: var(--bg-color);
+            transition: background-color 0.5s ease;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: transparent; /* Låt lagren synas */
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            transition: color 0.5s ease;
         }
 
-        /* Bakgrunds-brus (Gemensamt) */
+        /* BAKGRUNDS-LAGER */
+        #bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            transition: background-color 0.5s ease;
+            z-index: -10;
+        }
+
+        /* Brus-textur */
         body::before {
             content: "";
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-            pointer-events: none; z-index: -2;
+            pointer-events: none; z-index: -1;
         }
 
-        /* STARFALL CANVAS (Dark Mode) */
-        #starfall {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -5; pointer-events: none;
-            opacity: 1; transition: opacity 0.5s ease;
-        }
-        body.light-theme #starfall { opacity: 0; }
-
-        /* NEBULA GLOW (Dark Mode) */
+        /* Nebula Glow (Dark Mode Only) */
         .nebula-glow {
-            position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
-            width: 80%; height: 60%;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, rgba(0,0,0,0) 70%);
-            z-index: -6; pointer-events: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw; height: 80vh;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, rgba(0,0,0,0) 70%);
+            opacity: var(--nebula-opacity);
             transition: opacity 0.5s ease;
+            z-index: -4;
+            pointer-events: none;
+            mix-blend-mode: screen;
         }
-        body.light-theme .nebula-glow { opacity: 0; }
 
-        /* BLUEPRINT GRID (Light Mode) */
+        /* Blueprint Grid (Light Mode Only) - UPPDATERAT: Högre kontrast */
         .blueprint-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            /* Starkare färg: 0.15 -> 0.4 opacity på linjerna */
             background-image: 
-                linear-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+                linear-gradient(rgba(148, 163, 184, 0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.4) 1px, transparent 1px);
             background-size: 40px 40px;
-            z-index: -6; pointer-events: none;
-            opacity: 0; transition: opacity 0.5s ease;
+            z-index: -4;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
         }
         body.light-theme .blueprint-grid { opacity: 1; }
 
-        h1, h2, h3, .brand-font {
-            font-family: 'DM Serif Display', serif;
-        }
+        h1 { font-family: 'DM Serif Display', serif; }
 
-        /* --- UI KOMPONENTER --- */
-        
+        /* PANEL */
         .glass-panel {
             background: var(--glass-bg);
-            /* KRITA-UPDATE: Tjockare kant (2px) */
             border: 2px solid var(--chalk-line);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border-radius: 1rem;
-            transition: background 0.3s ease, border-color 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        body.light-theme .glass-panel {
+            /* Tydligare kant och skugga i light mode */
+            border-color: var(--text-secondary); 
+            box-shadow: 8px 8px 0px rgba(15, 23, 42, 0.15);
         }
 
-        .btn-primary {
-            background: rgba(255, 255, 255, 0.1);
-            /* KRITA-UPDATE: Matchar tjockleken */
-            border: 2px solid currentColor;
-            color: var(--text-primary);
-            padding: 0.6rem 1.5rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        /* BUTTON */
+        .btn-submit {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: 2px solid var(--btn-bg);
+            border-radius: 0.5rem;
+            font-weight: 800;
             text-transform: uppercase;
-            font-size: 0.8rem;
             letter-spacing: 0.05em;
-        }
-        body.light-theme .btn-primary {
-            background: #F1F5F9;
-            border-color: #CBD5E1;
-            color: #0F172A;
-        }
-        .btn-primary:hover {
-            background: var(--text-primary);
-            color: var(--bg-color);
-            border-color: var(--text-primary);
-            box-shadow: 0 0 20px rgba(125, 211, 252, 0.3);
-            transform: translateY(-2px);
-        }
-        body.light-theme .btn-primary:hover {
-            background: var(--cyan);
-            color: #ffffff;
-            border-color: var(--cyan);
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: var(--text-primary);
-        }
-        .nav-link.active::after {
-            content: '';
-            position: absolute; bottom: -4px; left: 0; width: 100%; height: 1px;
-            background: var(--cyan);
-            box-shadow: 0 0 8px var(--cyan);
-        }
-
-        /* Theme Toggle Button */
-        .theme-toggle {
-            background: transparent;
-            /* KRITA-UPDATE: Tjockare kant */
-            border: 2px solid var(--chalk-line);
-            color: var(--text-secondary);
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 4px 20px rgba(0,0,0, 0.1);
         }
-        .theme-toggle:hover {
-            color: var(--cyan);
-            border-color: var(--cyan);
-            background: var(--cyan-dim);
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            background-color: transparent;
+            color: var(--btn-bg);
         }
-
-        /* --- SPECIFIKA VARVET-KOMPONENTER --- */
-        
-        .stat-card {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 1.5rem; text-align: center;
-        }
-        .stat-value {
-            font-family: 'DM Serif Display', serif;
-            font-size: 2.5rem; line-height: 1;
+        body.light-theme .btn-submit:hover {
+            box-shadow: 4px 4px 0px rgba(15, 23, 42, 0.2);
             color: var(--text-primary);
-            text-shadow: 0 0 15px rgba(255,255,255,0.1);
-        }
-        body.light-theme .stat-value { text-shadow: none; }
-        .stat-label {
-            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
-            color: var(--cyan); margin-top: 0.5rem;
+            border-color: var(--text-primary);
         }
 
-        .submission-card {
-            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-            position: relative; overflow: hidden;
+        /* Starfall (Dark Mode Only) */
+        canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -5;
+            transition: opacity 0.5s ease;
         }
-        .submission-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--card-hover-border);
-            box-shadow: 0 10px 30px var(--card-hover-shadow);
-        }
-        .card-image {
-            height: 160px;
-            background: rgba(0,0,0,0.3);
-            display: flex; align-items: center; justify-content: center;
-            /* KRITA-UPDATE: Tjockare kant */
-            border-bottom: 2px solid var(--chalk-line);
-            color: var(--text-secondary);
-        }
-        body.light-theme .card-image { background: #F1F5F9; }
-        
-        /* Badges */
-        .badge-pill {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 2px 8px; border-radius: 4px;
-            font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-            /* Behåller 1px här för att inte dränka texten, eller vill du ha 2px här med? */
-            border: 1px solid var(--chalk-line);
-            background: rgba(255,255,255,0.05);
-            color: var(--text-primary);
-        }
-        body.light-theme .badge-pill { background: rgba(0,0,0,0.05); }
-        .badge-gold { border-color: #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
-        .badge-cyan { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+        body.light-theme canvas { opacity: 0; }
 
-        /* Leaderboard Table */
-        .leaderboard-row {
-            /* KRITA-UPDATE: Tjockare avdelare */
-            border-bottom: 2px solid var(--chalk-line);
-            transition: background 0.2s;
-        }
-        .leaderboard-row:last-child { border-bottom: none; }
-        .leaderboard-row:hover { background: rgba(255,255,255,0.03); }
-        body.light-theme .leaderboard-row:hover { background: rgba(0,0,0,0.03); }
-        .rank-number { font-family: 'DM Serif Display'; font-size: 1.25rem; color: var(--text-primary); }
-        
-        /* Countdown */
-        .countdown-segment {
-            background: rgba(0,0,0,0.2);
-            /* KRITA-UPDATE: Tjockare kant */
-            border: 2px solid var(--chalk-line);
-            padding: 0.5rem; min-width: 60px; border-radius: 4px;
-        }
-        body.light-theme .countdown-segment { background: rgba(255,255,255,0.5); }
+        /* THEME SWITCH */
+        .theme-switch { --toggle-size: 10px; --container-width: 5.625em; --container-height: 2.5em; --container-radius: 6.25em; --container-light-bg: #3D7EAE; --container-night-bg: #1D1F2C; --circle-container-diameter: 3.375em; --sun-moon-diameter: 2.125em; --sun-bg: #ECCA2F; --moon-bg: #C4C9D1; --spot-color: #959DB1; --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1); --stars-color: #fff; --clouds-color: #F3FDFF; --back-clouds-color: #AACADF; --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25); --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17); }
+        .theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after { -webkit-box-sizing: border-box; box-sizing: border-box; margin: 0; padding: 0; font-size: var(--toggle-size); }
+        .theme-switch__container { width: var(--container-width); height: var(--container-height); background-color: var(--container-light-bg); border-radius: var(--container-radius); overflow: hidden; cursor: pointer; box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25), 0em 0.062em 0.125em rgba(255, 255, 255, 0.94); transition: var(--transition); position: relative; border: 1px solid rgba(255,255,255,0.2); }
+        .theme-switch__container::before { content: ""; position: absolute; z-index: 1; inset: 0; box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset, 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset; border-radius: var(--container-radius) }
+        .theme-switch__checkbox { display: none; }
+        .theme-switch__circle-container { width: var(--circle-container-diameter); height: var(--circle-container-diameter); background-color: rgba(255, 255, 255, 0.1); position: absolute; left: var(--circle-container-offset); top: var(--circle-container-offset); border-radius: var(--container-radius); box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), 0 0 0 0.625em rgba(255, 255, 255, 0.1), 0 0 0 1.25em rgba(255, 255, 255, 0.1); display: flex; transition: var(--circle-transition); pointer-events: none; }
+        .theme-switch__sun-moon-container { pointer-events: auto; position: relative; z-index: 2; width: var(--sun-moon-diameter); height: var(--sun-moon-diameter); margin: auto; border-radius: var(--container-radius); background-color: var(--sun-bg); box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #a1872a inset; filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25)) drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25)); overflow: hidden; transition: var(--transition); }
+        .theme-switch__moon { transform: translateX(100%); width: 100%; height: 100%; background-color: var(--moon-bg); border-radius: inherit; box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #969696 inset; transition: var(--transition); position: relative; }
+        .theme-switch__spot { position: absolute; top: 0.75em; left: 0.312em; width: 0.75em; height: 0.75em; border-radius: var(--container-radius); background-color: var(--spot-color); box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset; }
+        .theme-switch__spot:nth-of-type(2) { width: 0.375em; height: 0.375em; top: 0.937em; left: 1.375em; }
+        .theme-switch__spot:nth-last-of-type(3) { width: 0.25em; height: 0.25em; top: 0.312em; left: 0.812em; }
+        .theme-switch__clouds { width: 1.25em; height: 1.25em; background-color: var(--clouds-color); border-radius: var(--container-radius); position: absolute; bottom: -0.625em; left: 0.312em; box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color); transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25); }
+        .theme-switch__stars-container { position: absolute; color: var(--stars-color); top: -100%; left: 0.312em; width: 2.75em; height: auto; transition: var(--transition); }
+        .theme-switch__checkbox:checked + .theme-switch__container { background-color: var(--container-night-bg); }
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container { left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter)); }
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container:hover { left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em) }
+        .theme-switch__circle-container:hover { left: calc(var(--circle-container-offset) + 0.187em); }
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon { transform: translate(0); }
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds { bottom: -4.062em; }
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container { top: 50%; transform: translateY(-50%); }
     </style>
 </head>
-<body>
+<body class="flex flex-col items-center justify-center p-6 relative">
 
-    <!-- BAKGRUND -->
-    <canvas id="starfall"></canvas> <!-- Partiklar för Dark Mode -->
-    <div class="nebula-glow"></div> <!-- Ljusglimt för Dark Mode -->
-    <div class="blueprint-grid"></div> <!-- Rutnät för Light Mode -->
+    <!-- BAKGRUNDSLAGER -->
+    <div id="bg-layer"></div>
+    <canvas id="starfall"></canvas>
+    <div class="blueprint-grid"></div>
+    <div class="nebula-glow"></div>
 
-    <!-- HEADER -->
-    <header class="fixed w-full top-0 z-50 glass-panel border-t-0 border-l-0 border-r-0 rounded-none">
-        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
-            <!-- LOGO -->
-            <a href="#" onclick="showSection('start')" class="flex items-center gap-3 group">
-                <img src="https://raw.githubusercontent.com/GusHem/Logga-utan-text/refs/heads/main/Final%20logo%20no%20text.svg" alt="NordSym" class="h-10 opacity-90 group-hover:opacity-100 transition-opacity">
-                <div class="flex flex-col">
-                    <!-- UPPDATERAT: Varumärke -->
-                    <span class="brand-font text-xl leading-none tracking-wide text-[var(--text-primary)]">SKEPPSVARV</span>
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-[var(--cyan)]">By NordSym</span>
+    <!-- HEADER / CONTROLS -->
+    <div class="absolute top-6 right-6 z-20">
+        <label class="theme-switch">
+            <input type="checkbox" class="theme-switch__checkbox" id="theme-switch-input" checked>
+            <div class="theme-switch__container">
+                <div class="theme-switch__clouds"></div>
+                <div class="theme-switch__stars-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                        <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
+                    </svg>
                 </div>
-            </a>
-
-            <!-- NAV (DESKTOP) -->
-            <nav class="hidden md:flex gap-8">
-                <button onclick="showSection('start')" class="nav-link active" data-target="start">Start</button>
-                <button onclick="showSection('leaderboard')" class="nav-link" data-target="leaderboard">Topplistan</button>
-                <button onclick="showSection('about')" class="nav-link" data-target="about">Om Skeppsvarv</button>
-            </nav>
-
-            <!-- RIGHT ACTIONS -->
-            <div class="flex items-center gap-4">
-                <button id="theme-toggle" class="theme-toggle" aria-label="Växla tema">
-                    <i class="ph ph-sun"></i>
-                </button>
-                <button onclick="showSection('build')" class="btn-primary flex items-center gap-2">
-                    <i class="ph-hammer"></i> <span class="hidden sm:inline">Börja Bygga</span>
-                </button>
+                <div class="theme-switch__circle-container">
+                    <div class="theme-switch__sun-moon-container">
+                        <div class="theme-switch__moon">
+                            <div class="theme-switch__spot"></div>
+                            <div class="theme-switch__spot"></div>
+                            <div class="theme-switch__spot"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </label>
+    </div>
+
+    <!-- BORTTAGEN: Fixed Footer Branding -->
+
+    <div class="glass-panel p-8 md:p-12 max-w-lg w-full text-center relative z-10 mt-10">
+        <!-- Logo Text -->
+        <div class="mb-10 flex flex-col items-center justify-center">
+            <h2 class="text-4xl md:text-5xl font-serif text-[var(--text-primary)] tracking-tight mb-3 transition-colors">SKEPPA.NU</h2>
+            <!-- BORTTAGEN: Gammal undertext -->
         </div>
-    </header>
 
-    <main class="pt-32 pb-20 container mx-auto px-6 min-h-screen relative z-10">
+        <!-- Status -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--chalk-line)] bg-black/5 mb-6 backdrop-blur-sm transition-colors" style="border-color: var(--chalk-line);">
+            <span class="relative flex h-1.5 w-1.5">
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-500"></span>
+            </span>
+            <span class="text-[10px] font-mono uppercase tracking-widest text-[var(--text-secondary)]">
+                Öppnar Februari 2026
+            </span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl text-[var(--text-primary)] mb-6 leading-tight transition-colors">
+            Sluta fila.<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-secondary)]">Börja skeppa.</span>
+        </h1>
+
+        <p class="text-[var(--text-secondary)] text-sm mb-8 leading-relaxed transition-colors max-w-md mx-auto">
+            <strong>Skeppa.nu</strong> är arenan där vi bygger med AI – från idé till lansering. En utmaning, en månad, ett projekt. Oavsett om det är genialt, galet eller början på något stort så bygger vi momentum tillsammans.
+        </p>
+
+        <!-- Waitlist Form -->
+        <form id="waitlist-form" class="flex flex-col gap-4">
+            <input type="email" id="email" placeholder="din@email.se" class="w-full bg-transparent border-2 border-[var(--chalk-line)] rounded p-3 text-[var(--text-primary)] text-center focus:border-[var(--cyan)] focus:outline-none transition-colors placeholder-gray-500" required>
+            
+            <!-- SOLID BUTTON -->
+            <button type="submit" class="btn-submit">
+                Kliv ombord
+            </button>
+        </form>
         
-        <!-- SECTION: START / DASHBOARD -->
-        <section id="section-start" class="fade-in-section">
-            <!-- HERO -->
-            <div class="text-center mb-16 relative pt-10">
-                <a href="#" class="inline-block px-4 py-1.5 border-2 border-[var(--chalk-line)] rounded-full text-xs font-mono text-[var(--cyan)] mb-6 bg-black/5 backdrop-blur-sm hover:bg-[var(--cyan-dim)] transition-colors">
-                    <span class="mr-2">●</span> JANUARI 2026 ÄR LIVE. SE KEYNOTEN! →
-                </a>
-                
-                <h1 class="text-5xl md:text-7xl text-[var(--text-primary)] mb-6 leading-tight">
-                    Ett AI-byggt projekt.<br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-secondary)]">Varje månad.</span>
-                </h1>
-                
-                <p class="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-                    Gör 2026 till året du bygger på riktigt. Skapa AI-assisterade appar och spel, sjösätt dina skapelser och bygg momentum tillsammans med andra arkitekter.
-                </p>
-                
-                <div class="flex justify-center gap-4">
-                    <button onclick="showSection('build')" class="btn-primary flex items-center gap-2 px-8 py-4 text-base">
-                        <i class="ph-hammer"></i> Börja Bygga
-                    </button>
-                    <button onclick="document.getElementById('current-month').scrollIntoView({behavior: 'smooth'})" class="px-8 py-4 rounded-full border-2 border-[var(--chalk-line)] text-[var(--text-primary)] font-semibold hover:bg-[var(--chalk-line)] hover:text-[var(--bg-color)] transition-all">
-                        Visa Månaden
-                    </button>
-                </div>
-            </div>
+        <!-- LIVE COUNT INDICATOR -->
+        <div class="mt-6 flex items-center justify-center gap-2 text-xs text-[var(--text-secondary)] opacity-80 font-mono tracking-wide mb-2">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span id="live-count">Laddar status...</span>
+        </div>
 
-            <!-- LIVE STATS -->
-            <div class="mb-20">
-                <div class="flex items-center gap-2 text-[var(--cyan)] mb-4 justify-center text-sm font-mono tracking-widest uppercase">
-                    <span class="w-2 h-2 bg-[var(--cyan)] rounded-full animate-pulse"></span> Live Statistik
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="glass-panel stat-card">
-                        <div class="stat-value">51</div>
-                        <div class="stat-label">Arkitekter</div>
-                    </div>
-                    <div class="glass-panel stat-card">
-                        <div class="stat-value">16</div>
-                        <div class="stat-label">Sjösättningar</div>
-                    </div>
-                    <div class="glass-panel stat-card">
-                        <div class="stat-value">2</div>
-                        <div class="stat-label">Månader</div>
-                    </div>
-                    <div class="glass-panel stat-card">
-                        <div class="stat-value text-[var(--cyan)]">191</div>
-                        <div class="stat-label">Poäng Utlösta</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- THIS MONTH'S VIBE -->
-            <div id="current-month" class="glass-panel p-8 md:p-12 mb-20 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <i class="ph-calendar text-9xl text-[var(--text-primary)]"></i>
-                </div>
-                
-                <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div class="text-center md:text-left">
-                        <span class="text-[var(--cyan)] text-sm tracking-widest uppercase font-bold mb-2 block">Månadens Tema</span>
-                        <h2 class="text-4xl md:text-5xl text-[var(--text-primary)] mb-4">Level Up</h2>
-                        <p class="text-[var(--text-secondary)] max-w-md">Bygg något som tar dig, din användare eller din teknikstack till nästa nivå.</p>
-                        
-                        <div class="flex flex-wrap gap-4 mt-6 justify-center md:justify-start">
-                            <button class="flex items-center gap-2 text-[var(--text-primary)] border-b border-[var(--cyan)] pb-1 hover:opacity-80">
-                                <i class="ph-play-circle text-xl"></i> Se Keynote
-                            </button>
-                            <button onclick="showSection('leaderboard')" class="flex items-center gap-2 text-[var(--text-primary)] border-b border-[var(--chalk-line)] pb-1 hover:opacity-80">
-                                <i class="ph-list-dashes text-xl"></i> Se alla bidrag
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- COUNTDOWN -->
-                    <div class="flex flex-col items-center">
-                        <div class="text-[var(--text-secondary)] text-xs uppercase tracking-widest mb-4">Stänger om</div>
-                        <div class="flex justify-center gap-3 font-mono text-sm">
-                            <div class="countdown-segment">
-                                <div class="text-2xl text-[var(--text-primary)] font-bold" id="days">18</div>
-                                <div class="text-xs text-[var(--text-secondary)]">DGR</div>
-                            </div>
-                            <div class="countdown-segment">
-                                <div class="text-2xl text-[var(--text-primary)] font-bold" id="hours">15</div>
-                                <div class="text-xs text-[var(--text-secondary)]">TIM</div>
-                            </div>
-                            <div class="countdown-segment">
-                                <div class="text-2xl text-[var(--text-primary)] font-bold" id="mins">25</div>
-                                <div class="text-xs text-[var(--text-secondary)]">MIN</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RECENT SUBMISSIONS -->
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h3 class="text-2xl text-[var(--text-primary)]">Nyligen Sjösatt</h3>
-                    <p class="text-sm text-[var(--text-secondary)]">Färska byggen från communityt</p>
-                </div>
-                <a href="#" onclick="showSection('leaderboard')" class="text-sm text-[var(--cyan)] hover:underline transition-colors font-semibold">Visa alla →</a>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-                <!-- CARD 1 -->
-                <div class="glass-panel submission-card group cursor-pointer">
-                    <div class="card-image">
-                        <i class="ph-kanban text-4xl"></i>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">VibeSaaS MVP</h4>
-                            <span class="badge-pill badge-cyan">AI</span>
-                        </div>
-                        <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@keen</strong></p>
-                        <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Låt användaren beskriva behov på kinesiska → AI genererar körbar React-kod → Realtidsförhandsvisning.</p>
-                        <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                            <span class="text-[var(--cyan)] font-bold">Öppna App</span>
-                            <span class="text-[var(--text-secondary)] opacity-70"><i class="ph-clock"></i> 2h</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CARD 2 -->
-                <div class="glass-panel submission-card group cursor-pointer">
-                    <div class="card-image">
-                        <i class="ph-robot text-4xl"></i>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">THE AGENCY</h4>
-                            <span class="badge-pill badge-gold">TOPP</span>
-                        </div>
-                        <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@kiliansolutions</strong></p>
-                        <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Claude Code-orkestrering som simulerar ett företag, använder Markdown-filer för agent-kommunikation.</p>
-                        <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                            <span class="text-[var(--cyan)] font-bold">Öppna App</span>
-                            <span class="text-[var(--text-secondary)] opacity-70"><i class="ph-clock"></i> 5h</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CARD 3 -->
-                <div class="glass-panel submission-card group cursor-pointer">
-                    <div class="card-image">
-                        <i class="ph-strategy text-4xl"></i>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">Digital War</h4>
-                            <span class="badge-pill">SPEL</span>
-                        </div>
-                        <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@erwann</strong></p>
-                        <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Ett strategispel om siffror och taktik.</p>
-                        <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                            <span class="text-[var(--cyan)] font-bold">Öppna App</span>
-                            <span class="text-[var(--text-secondary)] opacity-70"><i class="ph-clock"></i> 1d</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- INSPIRATION SECTION -->
-            <div class="mb-20">
-                <div class="text-center mb-10">
-                    <h3 class="text-3xl text-[var(--text-primary)] mb-2 font-serif">Behöver du inspiration?</h3>
-                    <p class="text-[var(--text-secondary)]">Här är höjdpunkter från tidigare månader.</p>
-                </div>
-
-                <!-- KRITA-UPDATE: Samma grid-struktur som ovan -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    <!-- INSPIRATION ITEM 1 -->
-                    <div class="glass-panel submission-card group cursor-pointer">
-                        <div class="card-image">
-                            <!-- Emoji istället för ikon här för variation, eller Phosphor om du föredrar -->
-                            <span class="text-6xl">🏀</span>
-                        </div>
-                        <div class="p-5">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">BallRewind</h4>
-                                <span class="badge-pill badge-gold">POPULÄR</span>
-                            </div>
-                            <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@velvetshark</strong></p>
-                            <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Se gårdagens bästa NBA-highlights utan att bli spoilad på resultatet.</p>
-                            <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                                <span class="text-[var(--cyan)] font-bold">Öppna Demo</span>
-                                <span class="text-[var(--text-secondary)] opacity-70">2025-12</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- INSPIRATION ITEM 2 -->
-                    <div class="glass-panel submission-card group cursor-pointer">
-                        <div class="card-image">
-                            <span class="text-6xl">🧙‍♂️</span>
-                        </div>
-                        <div class="p-5">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">Wizard Survivor</h4>
-                                <span class="badge-pill">SPEL</span>
-                            </div>
-                            <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@morganxxx</strong></p>
-                            <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Det kan bara finnas en trollkarl. Ett battle-royale spel byggt med Phaser.</p>
-                            <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                                <span class="text-[var(--cyan)] font-bold">Spela Nu</span>
-                                <span class="text-[var(--text-secondary)] opacity-70">2025-12</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- INSPIRATION ITEM 3 -->
-                    <div class="glass-panel submission-card group cursor-pointer">
-                        <div class="card-image">
-                            <span class="text-6xl">🦆</span>
-                        </div>
-                        <div class="p-5">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">Forest Census</h4>
-                                <span class="badge-pill badge-cyan">AI</span>
-                            </div>
-                            <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@chongdashu</strong></p>
-                            <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Räkna ankorna, ignorera resten! En vision-app för naturvårdare.</p>
-                            <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                                <span class="text-[var(--cyan)] font-bold">Öppna App</span>
-                                <span class="text-[var(--text-secondary)] opacity-70">2025-12</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- INSPIRATION ITEM 4 -->
-                    <div class="glass-panel submission-card group cursor-pointer">
-                        <div class="card-image">
-                            <span class="text-6xl">💻</span>
-                        </div>
-                        <div class="p-5">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">Prompt Coach</h4>
-                                <span class="badge-pill">DEV</span>
-                            </div>
-                            <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@robinebers</strong></p>
-                            <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Lär dig skriva kod-prompter som faktiskt fungerar för Claude och GPT-4.</p>
-                            <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                                <span class="text-[var(--cyan)] font-bold">Starta</span>
-                                <span class="text-[var(--text-secondary)] opacity-70">2025-12</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- INSPIRATION ITEM 5 -->
-                    <div class="glass-panel submission-card group cursor-pointer">
-                        <div class="card-image">
-                            <span class="text-6xl">✏️</span>
-                        </div>
-                        <div class="p-5">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-lg font-bold text-[var(--text-primary)] font-serif">Whiteboard Magic</h4>
-                                <span class="badge-pill badge-cyan">SaaS</span>
-                            </div>
-                            <p class="text-xs text-[var(--text-secondary)] mb-3">av <strong class="text-[var(--text-primary)]">@retroriver</strong></p>
-                            <p class="text-sm text-[var(--text-secondary)] mb-4 line-clamp-2">Skapa anpassad företagigrafik på 24 timmar med hjälp av AI-agenter.</p>
-                            <div class="flex justify-between items-center text-xs border-t border-[var(--chalk-line)] pt-3">
-                                <span class="text-[var(--cyan)] font-bold">Besök</span>
-                                <span class="text-[var(--text-secondary)] opacity-70">2025-12</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- HOW IT WORKS (Simplified) -->
-            <div class="max-w-4xl mx-auto mb-20 border-t border-[var(--chalk-line)] pt-16">
-                <h3 class="text-3xl text-[var(--text-primary)] mb-12 text-center font-serif">Så här fungerar det</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <div>
-                        <div class="w-16 h-16 rounded-full bg-[var(--cyan-dim)] border-2 border-[var(--cyan)] flex items-center justify-center text-2xl text-[var(--cyan)] mx-auto mb-4 font-serif">1</div>
-                        <h4 class="text-xl text-[var(--text-primary)] font-bold mb-2">Bygg något</h4>
-                        <p class="text-sm text-[var(--text-secondary)]">Skapa en AI-assisterad app eller spel (tema är valfritt).</p>
-                    </div>
-                    <div>
-                        <div class="w-16 h-16 rounded-full bg-[var(--cyan-dim)] border-2 border-[var(--cyan)] flex items-center justify-center text-2xl text-[var(--cyan)] mx-auto mb-4 font-serif">2</div>
-                        <h4 class="text-xl text-[var(--text-primary)] font-bold mb-2">Skicka in</h4>
-                        <p class="text-sm text-[var(--text-secondary)]">Dela din skapelse med communityt innan månaden är slut.</p>
-                    </div>
-                    <div>
-                        <div class="w-16 h-16 rounded-full bg-[var(--cyan-dim)] border-2 border-[var(--cyan)] flex items-center justify-center text-2xl text-[var(--cyan)] mx-auto mb-4 font-serif">3</div>
-                        <h4 class="text-xl text-[var(--text-primary)] font-bold mb-2">Få belöningar</h4>
-                        <p class="text-sm text-[var(--text-secondary)]">Få poäng och samla badges när du bygger fler projekt.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION: LEADERBOARD -->
-        <section id="section-leaderboard" class="hidden fade-in-section">
-            <div class="text-center mb-12">
-                <span class="text-[var(--cyan)] text-xs tracking-widest uppercase">Januari 2026</span>
-                <h2 class="text-4xl text-[var(--text-primary)] mb-4">Redarlistan</h2>
-                <p class="text-[var(--text-secondary)]">De som skeppar mest och bäst just nu.</p>
-            </div>
-
-            <div class="glass-panel overflow-hidden max-w-4xl mx-auto">
-                <div class="p-4 border-b border-[var(--chalk-line)] flex text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">
-                    <div class="w-16 text-center">Rank</div>
-                    <div class="flex-grow">Arkitekt</div>
-                    <div class="w-32 text-center">Skeppat</div>
-                    <div class="w-24 text-right">Poäng</div>
-                </div>
-                
-                <!-- ROW 1 -->
-                <div class="leaderboard-row p-4 flex items-center">
-                    <div class="w-16 text-center rank-number text-yellow-400">1</div>
-                    <div class="flex-grow flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-gray-700 border border-[var(--chalk-line)] text-white flex items-center justify-center text-xs">S</div>
-                        <div>
-                            <div class="text-[var(--text-primary)] font-medium">@simon_arch</div>
-                            <div class="text-[10px] text-[var(--text-secondary)] flex gap-1 mt-0.5">
-                                <span class="badge-pill badge-gold text-[8px] py-0 px-1">MVP</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w-32 text-center text-[var(--text-secondary)]">3</div>
-                    <div class="w-24 text-right font-mono text-[var(--cyan)] font-bold">420</div>
-                </div>
-
-                <!-- ROW 2 -->
-                <div class="leaderboard-row p-4 flex items-center">
-                    <div class="w-16 text-center rank-number text-[var(--text-secondary)]">2</div>
-                    <div class="flex-grow flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-gray-700 border border-[var(--chalk-line)] text-white flex items-center justify-center text-xs">K</div>
-                        <div>
-                            <div class="text-[var(--text-primary)] font-medium">@keen_dev</div>
-                        </div>
-                    </div>
-                    <div class="w-32 text-center text-[var(--text-secondary)]">2</div>
-                    <div class="w-24 text-right font-mono text-[var(--text-primary)] font-bold">280</div>
-                </div>
-
-                <!-- ROW 3 -->
-                <div class="leaderboard-row p-4 flex items-center">
-                    <div class="w-16 text-center rank-number text-orange-700">3</div>
-                    <div class="flex-grow flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-gray-700 border border-[var(--chalk-line)] text-white flex items-center justify-center text-xs">A</div>
-                        <div>
-                            <div class="text-[var(--text-primary)] font-medium">@ai_builder_99</div>
-                        </div>
-                    </div>
-                    <div class="w-32 text-center text-[var(--text-secondary)]">1</div>
-                    <div class="w-24 text-right font-mono text-[var(--text-primary)] font-bold">150</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION: ABOUT -->
-        <section id="section-about" class="hidden fade-in-section max-w-3xl mx-auto">
-            <h2 class="text-4xl text-[var(--text-primary)] mb-8 text-center">Hur fungerar Varvet?</h2>
-            
-            <div class="space-y-6">
-                <div class="glass-panel p-6 flex gap-6 items-start">
-                    <div class="text-4xl text-[var(--cyan)] font-serif opacity-50">01</div>
-                    <div>
-                        <h4 class="text-xl text-[var(--text-primary)] font-bold mb-2">Bygg något (snabbt)</h4>
-                        <p class="text-[var(--text-secondary)] leading-relaxed">Varje månad öppnas en ny utmaning. Temat är valfritt men rekommenderat. Målet är att använda AI-verktyg för att gå från idé till fungerande prototyp.</p>
-                    </div>
-                </div>
-
-                <div class="glass-panel p-6 flex gap-6 items-start">
-                    <div class="text-4xl text-[var(--cyan)] font-serif opacity-50">02</div>
-                    <div>
-                        <h4 class="text-xl text-[var(--text-primary)] font-bold mb-2">Sjösätt (Submitta)</h4>
-                        <p class="text-[var(--text-secondary)] leading-relaxed">Dela din länk innan månaden är slut. Det kan vara en webbapp, ett GitHub-repo eller en video på ett fungerande n8n-flöde.</p>
-                    </div>
-                </div>
-
-                <div class="glass-panel p-6 flex gap-6 items-start">
-                    <div class="text-4xl text-[var(--cyan)] font-serif opacity-50">03</div>
-                    <div>
-                        <h4 class="text-xl text-[var(--text-primary)] font-bold mb-2">Samla Utmärkelser</h4>
-                        <p class="text-[var(--text-secondary)] leading-relaxed">Få poäng för momentum. Samla badges som "Dubbellast" (2 skeppningar/mån) eller "Jungfrufärd" (Första bygget).</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FAQ -->
-            <div class="mt-20 max-w-3xl mx-auto">
-                <h3 class="text-3xl text-[var(--text-primary)] mb-8 text-center font-serif">Vanliga Frågor</h3>
-                <div class="space-y-4">
-                    
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Vad räknas som en sjösättning?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Allt du har skeppat: webbapp, spel, mobilapp, CLI-verktyg eller plugin. En live-URL är enklast, men länkar till App Store, itch.io, GitHub Releases eller en nedladdningssida fungerar också. Om det krävs nedladdning, lägg gärna till en demo-länk så folk kan tjuvkika först.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Kan jag sjösätta flera gånger per månad?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Ja. Vi uppmuntrar momentum – du kan registrera upp till 5 skeppningar per månad för att samla poäng.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Hur fungerar poäng och utmärkelser?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Din första sjösättning i månaden ger <strong>10 poäng</strong>. Varje efterföljande ger <strong>5 poäng</strong> (upp till 5 st). Utmärkelser (Badges) delas ut automatiskt vid milstolpar och ger <strong>+2 poäng</strong> vardera.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Måste jag följa månadens tema?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Nej. Temat är valfritt och finns där för inspiration. Bygg vad du vill.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Måste jag dela min källkod (repo)?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Nej. Länk till repot är valfritt. Men om din app kostar pengar eller kräver inloggning, hjälper en publik demo eller video folk att förstå vad du byggt.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Måste jag använda ett specifikt AI-verktyg?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Nej. Använd det som får dig att skeppa snabbast (Cursor, Windsurf, Claude Code, GitHub Copilot etc.). Berätta gärna i beskrivningen vad du använde, det hjälper andra byggare.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Kan jag bygga vidare på ett gammalt projekt?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Ja. Nya byggen, stora uppdateringar och remixer är välkomna. Om du startade tidigare, specificera vad du skeppade just denna månad.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            Är detta bara för "seriösa" projekt?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Nej. Smått, konstigt, lekfullt eller praktiskt – om det är skeppat så hör det hemma på Varvet.
-                        </p>
-                    </details>
-
-                    <details class="glass-panel p-4 group">
-                        <summary class="cursor-pointer font-bold text-[var(--text-primary)] flex justify-between items-center list-none select-none">
-                            När stänger inlämningen?
-                            <i class="ph-caret-down group-open:rotate-180 transition-transform text-[var(--cyan)]"></i>
-                        </summary>
-                        <p class="mt-4 text-[var(--text-secondary)] text-sm leading-relaxed border-t border-[var(--chalk-line)] pt-4">
-                            Varje månad har en definierad start och slut. Vi följer UTC-tid så att alla har samma deadline oavsett var man befinner sig.
-                        </p>
-                    </details>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION: BUILD (FORM) -->
-        <section id="section-build" class="hidden fade-in-section max-w-xl mx-auto">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl text-[var(--text-primary)] mb-2">Registrera Skeppning</h2>
-                <p class="text-[var(--text-secondary)]">Fyll i detaljerna om ditt bygge för att få poäng.</p>
-            </div>
-            
-            <div class="glass-panel p-8">
-                <form onsubmit="event.preventDefault(); alert('Detta är en MVP. I skarp version kopplas detta till Supabase.');">
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">Projektnamn</label>
-                            <!-- KRITA-UPDATE: border-2 på inputs -->
-                            <input type="text" class="w-full bg-[var(--bg-color)] border-2 border-[var(--chalk-line)] rounded p-3 text-[var(--text-primary)] focus:border-[var(--cyan)] focus:outline-none transition-colors" placeholder="t.ex. Auto-CRM">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">Länk (Demo/Repo)</label>
-                            <input type="url" class="w-full bg-[var(--bg-color)] border-2 border-[var(--chalk-line)] rounded p-3 text-[var(--text-primary)] focus:border-[var(--cyan)] focus:outline-none transition-colors" placeholder="https://...">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">Beskrivning</label>
-                            <textarea rows="3" class="w-full bg-[var(--bg-color)] border-2 border-[var(--chalk-line)] rounded p-3 text-[var(--text-primary)] focus:border-[var(--cyan)] focus:outline-none transition-colors" placeholder="Vilket problem löser den? Vilken AI-stack använde du?"></textarea>
-                        </div>
-                        
-                        <div class="pt-4">
-                            <button type="submit" class="btn-primary w-full py-3 flex justify-center items-center gap-2">
-                                <i class="ph-paper-plane-right"></i> Skicka in till Varvet
-                            </button>
-                        </div>
-                        <p class="text-xs text-center text-[var(--text-secondary)] opacity-70 mt-4">Kräver inloggning via Supabase i skarp version.</p>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="border-t border-[var(--chalk-line)] bg-[var(--glass-bg)] py-8 text-center text-xs text-[var(--text-secondary)]">
-        <p class="mb-2">En del av NordSym Ecosystem.</p>
-        <p>© 2026 NordSym AB. Byggt för byggare.</p>
-    </footer>
+        <!-- DISKRET BRANDING TAG (Inuti kortet, nere till höger) -->
+        <div class="absolute bottom-3 right-4 flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity cursor-help select-none">
+            <span class="text-[8px] uppercase tracking-widest text-[var(--text-secondary)]">DRIVS AV</span>
+            <img src="https://raw.githubusercontent.com/GusHem/Logga-utan-text/refs/heads/main/Final%20logo%20no%20text.svg" alt="NordSym Logo" class="h-3 w-3">
+            <span class="text-[8px] font-bold text-[var(--text-primary)] tracking-widest">NORDSYM AB</span>
+        </div>
+    </div>
 
     <script>
-        // --- STARFALL MANAGER (Canvas Animation) ---
-        class StarfallManager {
-            constructor() {
-                this.canvas = document.getElementById('starfall');
-                this.ctx = this.canvas.getContext('2d');
-                this.stars = [];
-                this.meteors = [];
-                this.width = window.innerWidth;
-                this.height = window.innerHeight;
-                
-                this.config = {
-                    starCount: 200,
-                    meteorChance: 0.005,
-                    colors: {
-                        star: '255, 255, 255',
-                        meteorHead: '#00D4FF',
-                        meteorTrailEnd: 'rgba(0, 212, 255, 0)'
-                    }
-                };
-
-                this.init();
-            }
-
-            init() {
-                this.handleResize();
-                window.addEventListener('resize', () => this.handleResize());
-                this.createStars();
-                this.animate();
-            }
-
-            handleResize() {
-                this.width = window.innerWidth;
-                this.height = window.innerHeight;
-                this.canvas.width = this.width;
-                this.canvas.height = this.height;
-                if(this.stars.length === 0) this.createStars();
-            }
-
-            createStars() {
-                this.stars = [];
-                for (let i = 0; i < this.config.starCount; i++) {
-                    this.stars.push({
-                        x: Math.random() * this.width,
-                        y: Math.random() * this.height,
-                        size: Math.random() * 1.5 + 0.5,
-                        baseOpacity: Math.random() * 0.5 + 0.1,
-                        pulseSpeed: Math.random() * 0.02 + 0.005,
-                        pulseOffset: Math.random() * Math.PI * 2
-                    });
-                }
-            }
-
-            createMeteor() {
-                return {
-                    x: Math.random() * this.width * 1.5,
-                    y: -100,
-                    length: Math.random() * 80 + 40,
-                    speed: Math.random() * 15 + 10,
-                    thickness: Math.random() * 1.5 + 0.5,
-                    angle: Math.PI / 4 + (Math.random() * 0.1 - 0.05)
-                };
-            }
-
-            draw() {
-                this.ctx.clearRect(0, 0, this.width, this.height);
-                
-                // Stars
-                const time = Date.now();
-                this.stars.forEach(star => {
-                    const pulse = Math.sin(time * 0.002 * star.pulseSpeed + star.pulseOffset);
-                    const opacity = Math.max(0, Math.min(1, star.baseOpacity + pulse * 0.2));
-                    this.ctx.fillStyle = `rgba(${this.config.colors.star}, ${opacity})`;
-                    this.ctx.fillRect(star.x, star.y, star.size, star.size);
-                });
-
-                // Meteors
-                if (Math.random() < this.config.meteorChance) this.meteors.push(this.createMeteor());
-                
-                for (let i = this.meteors.length - 1; i >= 0; i--) {
-                    const m = this.meteors[i];
-                    m.x -= m.speed * Math.cos(m.angle);
-                    m.y += m.speed * Math.sin(m.angle);
-                    
-                    const tailX = m.x + m.length * Math.cos(m.angle);
-                    const tailY = m.y - m.length * Math.sin(m.angle);
-                    
-                    const gradient = this.ctx.createLinearGradient(m.x, m.y, tailX, tailY);
-                    gradient.addColorStop(0, this.config.colors.meteorHead);
-                    gradient.addColorStop(1, this.config.colors.meteorTrailEnd);
-                    
-                    this.ctx.strokeStyle = gradient;
-                    this.ctx.lineWidth = m.thickness;
-                    this.ctx.lineCap = 'round';
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(m.x, m.y);
-                    this.ctx.lineTo(tailX, tailY);
-                    this.ctx.stroke();
-
-                    if (m.y > this.height + 200) this.meteors.splice(i, 1);
-                }
-            }
-
-            animate() {
-                // Stoppa rendering om vi är i ljust läge (spara prestanda)
-                if (!document.body.classList.contains('light-theme')) {
-                    this.draw();
-                }
-                requestAnimationFrame(() => this.animate());
-            }
-        }
-
-        // --- ENKEL SPA ROUTING ---
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById(`section-${sectionId}`);
-            if(target) {
-                target.classList.remove('hidden');
-                target.style.opacity = 0;
-                setTimeout(() => target.style.opacity = 1, 50);
-                target.style.transition = 'opacity 0.4s ease';
-            }
-            document.querySelectorAll('.nav-link').forEach(btn => {
-                if(btn.dataset.target === sectionId) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-            window.scrollTo(0, 0);
-        }
-
-        // --- THEME MANAGER ---
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const body = document.body;
+        // --- SUPABASE CONFIGURATION ---
+        const SUPABASE_URL = 'https://DINA-PROJEKT-ID.supabase.co';
+        const SUPABASE_KEY = 'DIN-ANON-PUBLIC-KEY';
         
-        // Kolla sparat tema
-        const savedTheme = localStorage.getItem('varvet_theme');
-        if (savedTheme === 'light') {
-            body.classList.add('light-theme');
-            themeToggleBtn.innerHTML = '<i class="ph ph-moon"></i>';
-        }
+        let supabaseClient;
+        try {
+            if (!SUPABASE_URL.includes('DINA')) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e) { console.error('Supabase init:', e); }
 
-        themeToggleBtn.addEventListener('click', () => {
-            body.classList.toggle('light-theme');
-            const isLight = body.classList.contains('light-theme');
-            localStorage.setItem('varvet_theme', isLight ? 'light' : 'dark');
-            themeToggleBtn.innerHTML = isLight ? '<i class="ph ph-moon"></i>' : '<i class="ph ph-sun"></i>';
+        // --- LIVE COUNT LOGIC ---
+        async function updateWaitlistCount() {
+            const display = document.getElementById('live-count');
+            let count = 3; 
+
+            if (supabaseClient) {
+                const { count: realCount, error } = await supabaseClient
+                    .from('waitlist')
+                    .select('*', { count: 'exact', head: true });
+                if (!error && realCount !== null) {
+                    count = realCount + 3; 
+                }
+            }
+            display.innerText = `${count} skeppare`;
+        }
+        updateWaitlistCount();
+
+        // --- THEME SWITCH LOGIC ---
+        const themeCheckbox = document.getElementById('theme-switch-input');
+        const body = document.body;
+
+        // Om vi byter (Standard = Dark/Checked)
+        themeCheckbox.addEventListener('change', () => {
+            if (themeCheckbox.checked) {
+                body.classList.remove('light-theme'); // Natt
+            } else {
+                body.classList.add('light-theme'); // Dag
+            }
         });
 
-        // --- MOCKUP COUNTDOWN TIMER ---
-        function updateTimer() {
-            const now = new Date();
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            const diff = endOfMonth - now;
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            document.getElementById('days').innerText = d < 10 ? '0'+d : d;
-            document.getElementById('hours').innerText = h < 10 ? '0'+h : h;
-            document.getElementById('mins').innerText = m < 10 ? '0'+m : m;
+        // Enkel Starfall (Dark Mode Only)
+        const canvas = document.getElementById('starfall');
+        const ctx = canvas.getContext('2d');
+        let width, height, stars = [];
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            stars = Array(150).fill().map(() => ({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 1.5,
+                opacity: Math.random()
+            }));
         }
-        setInterval(updateTimer, 60000);
-        updateTimer();
 
-        // INITIERING
-        window.addEventListener('load', () => {
-            new StarfallManager();
+        function animate() {
+            if (body.classList.contains('light-theme')) {
+                ctx.clearRect(0, 0, width, height);
+                requestAnimationFrame(animate);
+                return;
+            }
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(star => {
+                star.opacity += (Math.random() - 0.5) * 0.05;
+                if (star.opacity < 0) star.opacity = 0;
+                if (star.opacity > 1) star.opacity = 1;
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        animate();
+
+        // Form Logic
+        document.getElementById('waitlist-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const email = document.getElementById('email').value;
+            
+            btn.innerText = 'Skriver in...';
+            
+            if (supabaseClient) {
+                await supabaseClient.from('waitlist').insert({ email: email });
+                const countDisplay = document.getElementById('live-count');
+                const currentCount = parseInt(countDisplay.innerText) || 0;
+                countDisplay.innerText = `${currentCount + 1} skeppare`;
+            } else {
+                console.log('Sparade (Demo):', email);
+            }
+
+            setTimeout(() => {
+                btn.innerText = 'Välkommen ombord!';
+                btn.style.backgroundColor = '#22c55e'; // Green
+                btn.style.borderColor = '#22c55e';
+                btn.style.color = '#ffffff';
+                document.getElementById('email').value = '';
+            }, 800);
         });
-
     </script>
 </body>
 </html>
