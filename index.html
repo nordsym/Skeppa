@@ -28,6 +28,8 @@
             --btn-bg: #FFFFFF;
             --btn-text: #050608;
             --nebula-opacity: 0.4;
+            --error-color: #ef4444;
+            --success-color: #22c55e;
         }
 
         /* LIGHT MODE (The Blueprint) */
@@ -35,7 +37,7 @@
             --bg-color: #F0F4F8;
             --text-primary: #0F172A;
             --text-secondary: #475569;
-            --chalk-line: #94A3B8; /* Mörkare linjer */
+            --chalk-line: #94A3B8;
             --glass-bg: #FFFFFF;
             --glass-blur: 0px;
             --cyan: #0284C7;
@@ -44,14 +46,14 @@
             --nebula-opacity: 0;
         }
 
-        /* Grundinställningar för HTML/Body för att säkra bakgrunden */
+        /* Grundinställningar */
         html {
             background-color: var(--bg-color);
             transition: background-color 0.5s ease;
         }
 
         body {
-            background-color: transparent; /* Låt lagren synas */
+            background-color: transparent;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
@@ -79,7 +81,7 @@
             pointer-events: none; z-index: -1;
         }
 
-        /* Nebula Glow (Dark Mode Only) */
+        /* Nebula Glow */
         .nebula-glow {
             position: fixed;
             top: 50%; left: 50%;
@@ -93,10 +95,9 @@
             mix-blend-mode: screen;
         }
 
-        /* Blueprint Grid (Light Mode Only) - UPPDATERAT: Högre kontrast */
+        /* Blueprint Grid */
         .blueprint-grid {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            /* Starkare färg: 0.15 -> 0.4 opacity på linjerna */
             background-image: 
                 linear-gradient(rgba(148, 163, 184, 0.4) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(148, 163, 184, 0.4) 1px, transparent 1px);
@@ -121,7 +122,6 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
         body.light-theme .glass-panel {
-            /* Tydligare kant och skugga i light mode */
             border-color: var(--text-secondary); 
             box-shadow: 8px 8px 0px rgba(15, 23, 42, 0.15);
         }
@@ -140,18 +140,38 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             box-shadow: 0 4px 20px rgba(0,0,0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-submit:hover {
+        .btn-submit:not(:disabled):hover {
             transform: translateY(-2px);
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
             background-color: transparent;
             color: var(--btn-bg);
         }
-        body.light-theme .btn-submit:hover {
+        body.light-theme .btn-submit:not(:disabled):hover {
             box-shadow: 4px 4px 0px rgba(15, 23, 42, 0.2);
             color: var(--text-primary);
             border-color: var(--text-primary);
         }
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* FORM FEEDBACK */
+        .status-message {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            min-height: 1.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .status-error { color: var(--error-color); }
+        .status-success { color: var(--success-color); }
 
         /* Starfall (Dark Mode Only) */
         canvas {
@@ -215,13 +235,10 @@
         </label>
     </div>
 
-    <!-- BORTTAGEN: Fixed Footer Branding -->
-
     <div class="glass-panel p-8 md:p-12 max-w-lg w-full text-center relative z-10 mt-10">
         <!-- Logo Text -->
         <div class="mb-10 flex flex-col items-center justify-center">
             <h2 class="text-4xl md:text-5xl font-serif text-[var(--text-primary)] tracking-tight mb-3 transition-colors">SKEPPA.NU</h2>
-            <!-- BORTTAGEN: Gammal undertext -->
         </div>
 
         <!-- Status -->
@@ -239,18 +256,24 @@
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-secondary)]">Börja skeppa.</span>
         </h1>
 
-        <p class="text-[var(--text-secondary)] text-sm mb-8 leading-relaxed transition-colors max-w-md mx-auto">
-            <strong>Skeppa.nu</strong> är arenan där vi bygger med AI – från idé till lansering. En utmaning, en månad, ett projekt. Oavsett om det är genialt, galet eller början på något stort så bygger vi momentum tillsammans.
+        <p class="text-[var(--text-secondary)] text-sm mb-8 leading-relaxed transition-colors">
+            <strong>Skeppa.nu</strong> är arenan där svenska AI-byggare går från idé till lansering. En utmaning, en månad, ett projekt. Oavsett om det är ett snabbt experiment för att lära dig nytt, eller första versionen av din affärsidé – här bygger vi momentum tillsammans.
         </p>
 
         <!-- Waitlist Form -->
         <form id="waitlist-form" class="flex flex-col gap-4">
             <input type="email" id="email" placeholder="din@email.se" class="w-full bg-transparent border-2 border-[var(--chalk-line)] rounded p-3 text-[var(--text-primary)] text-center focus:border-[var(--cyan)] focus:outline-none transition-colors placeholder-gray-500" required>
             
-            <!-- SOLID BUTTON -->
-            <button type="submit" class="btn-submit">
-                Kliv ombord
+            <button type="submit" id="submit-btn" class="btn-submit">
+                <svg id="loading-spinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-current hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="btn-text">Säkra min plats</span>
             </button>
+            
+            <!-- Status message area to prevent layout jumps -->
+            <div id="form-status" class="status-message" aria-live="polite"></div>
         </form>
         
         <!-- LIVE COUNT INDICATOR -->
@@ -259,10 +282,10 @@
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            <span id="live-count">Laddar status...</span>
+            <span id="live-count">Räknar skeppare...</span>
         </div>
 
-        <!-- DISKRET BRANDING TAG (Inuti kortet, nere till höger) -->
+        <!-- DISKRET BRANDING TAG -->
         <div class="absolute bottom-3 right-4 flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity cursor-help select-none">
             <span class="text-[8px] uppercase tracking-widest text-[var(--text-secondary)]">DRIVS AV</span>
             <img src="https://raw.githubusercontent.com/GusHem/Logga-utan-text/refs/heads/main/Final%20logo%20no%20text.svg" alt="NordSym Logo" class="h-3 w-3">
@@ -272,38 +295,103 @@
 
     <script>
         // --- SUPABASE CONFIGURATION ---
-        const SUPABASE_URL = 'https://DINA-PROJEKT-ID.supabase.co';
-        const SUPABASE_KEY = 'DIN-ANON-PUBLIC-KEY';
+        const SUPABASE_URL = 'https://qjouribmhkkhqdsieprs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_UBSBWhsFeqVDFByq13yXNw_NkJGtR_d';
         
-        let supabaseClient;
-        try {
-            if (!SUPABASE_URL.includes('DINA')) {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
-        } catch(e) { console.error('Supabase init:', e); }
+        // Initialize client with a unique name to avoid collision with the window.supabase library
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- DOM ELEMENTS ---
+        const liveCountDisplay = document.getElementById('live-count');
+        const waitlistForm = document.getElementById('waitlist-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const emailInput = document.getElementById('email');
+        const statusMessage = document.getElementById('form-status');
 
         // --- LIVE COUNT LOGIC ---
         async function updateWaitlistCount() {
-            const display = document.getElementById('live-count');
-            let count = 3; 
-
-            if (supabaseClient) {
-                const { count: realCount, error } = await supabaseClient
+            try {
+                // Select * with head:true to get count without fetching all data (efficient)
+                const { count, error } = await supabaseClient
                     .from('waitlist')
                     .select('*', { count: 'exact', head: true });
-                if (!error && realCount !== null) {
-                    count = realCount + 3; 
-                }
+
+                if (error) throw error;
+                
+                // Animate/Update number
+                liveCountDisplay.innerText = `${count || 0} skeppare`;
+            } catch (err) {
+                console.error("Kunde inte hämta antal:", err);
+                // Fallback text if DB is unreachable
+                liveCountDisplay.innerText = "Söker skeppare..."; 
             }
-            display.innerText = `${count} skeppare`;
         }
+        
+        // Fetch count immediately on load
         updateWaitlistCount();
+
+        // --- FORM SUBMISSION LOGIC ---
+        waitlistForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            if (!email) return;
+
+            // UI: Loading State
+            setLoading(true);
+            statusMessage.innerText = "";
+            statusMessage.className = "status-message";
+
+            try {
+                const { error } = await supabaseClient
+                    .from('waitlist')
+                    .insert({ email: email });
+
+                if (error) {
+                    if (error.code === '23505') { // Postgres code for Unique Violation
+                        showStatus("Du finns redan i loggboken! Skepp ohoj!", "error");
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    // SUCCESS
+                    showStatus("Välkommen ombord! Vi hörs snart.", "success");
+                    emailInput.value = ""; // Clear input
+                    updateWaitlistCount(); // Refresh count immediately
+                }
+
+            } catch (err) {
+                console.error("Signup error:", err);
+                showStatus("Något gick fel. Försök igen senare.", "error");
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // --- UI HELPERS ---
+        function setLoading(isLoading) {
+            submitBtn.disabled = isLoading;
+            if (isLoading) {
+                loadingSpinner.classList.remove('hidden');
+                btnText.innerText = "Skeppar iväg...";
+            } else {
+                loadingSpinner.classList.add('hidden');
+                btnText.innerText = "Säkra min plats";
+            }
+        }
+
+        function showStatus(msg, type) {
+            statusMessage.innerText = msg;
+            statusMessage.classList.remove('status-error', 'status-success');
+            if (type === 'error') statusMessage.classList.add('status-error');
+            if (type === 'success') statusMessage.classList.add('status-success');
+        }
 
         // --- THEME SWITCH LOGIC ---
         const themeCheckbox = document.getElementById('theme-switch-input');
         const body = document.body;
 
-        // Om vi byter (Standard = Dark/Checked)
         themeCheckbox.addEventListener('change', () => {
             if (themeCheckbox.checked) {
                 body.classList.remove('light-theme'); // Natt
@@ -312,12 +400,12 @@
             }
         });
 
-        // Enkel Starfall (Dark Mode Only)
+        // --- VISUALS: STARFALL ---
         const canvas = document.getElementById('starfall');
         const ctx = canvas.getContext('2d');
         let width, height, stars = [];
 
-        function init() {
+        function initStars() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
             stars = Array(150).fill().map(() => ({
@@ -328,10 +416,10 @@
             }));
         }
 
-        function animate() {
+        function animateStars() {
             if (body.classList.contains('light-theme')) {
                 ctx.clearRect(0, 0, width, height);
-                requestAnimationFrame(animate);
+                requestAnimationFrame(animateStars);
                 return;
             }
             ctx.clearRect(0, 0, width, height);
@@ -342,38 +430,12 @@
                 ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
                 ctx.fillRect(star.x, star.y, star.size, star.size);
             });
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateStars);
         }
 
-        window.addEventListener('resize', init);
-        init();
-        animate();
-
-        // Form Logic
-        document.getElementById('waitlist-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const email = document.getElementById('email').value;
-            
-            btn.innerText = 'Skriver in...';
-            
-            if (supabaseClient) {
-                await supabaseClient.from('waitlist').insert({ email: email });
-                const countDisplay = document.getElementById('live-count');
-                const currentCount = parseInt(countDisplay.innerText) || 0;
-                countDisplay.innerText = `${currentCount + 1} skeppare`;
-            } else {
-                console.log('Sparade (Demo):', email);
-            }
-
-            setTimeout(() => {
-                btn.innerText = 'Välkommen ombord!';
-                btn.style.backgroundColor = '#22c55e'; // Green
-                btn.style.borderColor = '#22c55e';
-                btn.style.color = '#ffffff';
-                document.getElementById('email').value = '';
-            }, 800);
-        });
+        window.addEventListener('resize', initStars);
+        initStars();
+        animateStars();
     </script>
 </body>
 </html>
