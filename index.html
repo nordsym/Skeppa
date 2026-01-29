@@ -1371,15 +1371,15 @@
                     // Trigger flip animation
                     card.classList.add('flipping');
 
-                    // Update number at midpoint of animation
+                    // Update number at midpoint of animation (300ms = half of 600ms)
                     setTimeout(() => {
                         numEl.textContent = formattedValue;
-                    }, 250);
+                    }, 300);
 
-                    // Remove animation class
+                    // Remove animation class after full animation (600ms + buffer)
                     setTimeout(() => {
                         card.classList.remove('flipping');
-                    }, 500);
+                    }, 650);
                 }
             }
 
