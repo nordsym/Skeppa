@@ -448,7 +448,7 @@
                     <div class="flip-segment">
                         <div class="flip-card" id="flip-days">
                             <div class="flip-card-inner">
-                                <span class="number">02</span>
+                                <span class="number">--</span>
                             </div>
                         </div>
                         <div class="flip-label">Dagar</div>
@@ -456,7 +456,7 @@
                     <div class="flip-segment">
                         <div class="flip-card" id="flip-hours">
                             <div class="flip-card-inner">
-                                <span class="number">00</span>
+                                <span class="number">--</span>
                             </div>
                         </div>
                         <div class="flip-label">Timmar</div>
@@ -464,12 +464,28 @@
                     <div class="flip-segment">
                         <div class="flip-card" id="flip-mins">
                             <div class="flip-card-inner">
-                                <span class="number">00</span>
+                                <span class="number">--</span>
                             </div>
                         </div>
                         <div class="flip-label">Minuter</div>
                     </div>
                 </div>
+                <!-- Inline script to ensure countdown runs immediately -->
+                <script>
+                (function() {
+                    const target = new Date(2026, 1, 1, 0, 1, 0);
+                    const now = new Date();
+                    const diff = target - now;
+                    if (diff > 0) {
+                        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        document.getElementById('flip-days').querySelector('.number').textContent = d < 10 ? '0' + d : d;
+                        document.getElementById('flip-hours').querySelector('.number').textContent = h < 10 ? '0' + h : h;
+                        document.getElementById('flip-mins').querySelector('.number').textContent = m < 10 ? '0' + m : m;
+                    }
+                })();
+                </script>
             </div>
 
             <!-- STATS GRID -->
