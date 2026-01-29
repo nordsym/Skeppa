@@ -469,6 +469,14 @@
                         </div>
                         <div class="flip-label">Minuter</div>
                     </div>
+                    <div class="flip-segment">
+                        <div class="flip-card" id="flip-secs">
+                            <div class="flip-card-inner">
+                                <span class="number">--</span>
+                            </div>
+                        </div>
+                        <div class="flip-label">Sekunder</div>
+                    </div>
                 </div>
                 <!-- Inline script to ensure countdown runs immediately -->
                 <script>
@@ -480,9 +488,11 @@
                         const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                         const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((diff % (1000 * 60)) / 1000);
                         document.getElementById('flip-days').querySelector('.number').textContent = d < 10 ? '0' + d : d;
                         document.getElementById('flip-hours').querySelector('.number').textContent = h < 10 ? '0' + h : h;
                         document.getElementById('flip-mins').querySelector('.number').textContent = m < 10 ? '0' + m : m;
+                        document.getElementById('flip-secs').querySelector('.number').textContent = s < 10 ? '0' + s : s;
                     }
                 })();
                 </script>
@@ -1369,16 +1379,19 @@
                     updateFlipCard('flip-days', 0);
                     updateFlipCard('flip-hours', 0);
                     updateFlipCard('flip-mins', 0);
+                    updateFlipCard('flip-secs', 0);
                     return;
                 }
 
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
 
                 updateFlipCard('flip-days', d);
                 updateFlipCard('flip-hours', h);
                 updateFlipCard('flip-mins', m);
+                updateFlipCard('flip-secs', s);
             }
 
             // Run immediately
