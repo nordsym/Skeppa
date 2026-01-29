@@ -404,16 +404,16 @@
                     <div class="stat-label">Skeppare</div>
                 </div>
                 <div class="glass-panel stat-card">
-                    <div class="stat-value" id="stat-ships">0</div>
-                    <div class="stat-label">Sjösatta Skepp</div>
+                    <div class="stat-value" id="stat-landcrabs">0</div>
+                    <div class="stat-label">Landkrabbor</div>
                 </div>
                 <div class="glass-panel stat-card">
                     <div class="stat-value text-[var(--cyan)]" id="stat-batch">—</div>
                     <div class="stat-label">Månadens Batch</div>
                 </div>
                 <div class="glass-panel stat-card">
-                    <div class="stat-value" id="stat-points">0</div>
-                    <div class="stat-label">Poäng Utlöst</div>
+                    <div class="stat-value" id="stat-ships">0</div>
+                    <div class="stat-label">Sjösatta Skepp</div>
                 </div>
             </div>
 
@@ -950,9 +950,10 @@
         async function loadDashboardData() {
             try {
                 // Load stats from Supabase
-                const [submissionsRes, batchRes] = await Promise.all([
+                const [submissionsRes, batchRes, waitlistRes] = await Promise.all([
                     supabase.from('submissions').select('user_id, points_earned'),
-                    supabase.from('batches').select('*').eq('is_active', true).single()
+                    supabase.from('batches').select('*').eq('is_active', true).single(),
+                    supabase.from('waitlist').select('id', { count: 'exact', head: true })
                 ]);
 
                 const submissions = submissionsRes.data || [];
@@ -960,7 +961,9 @@
                 // Skeppare = unika användare som har skeppat
                 const uniqueShippers = new Set(submissions.map(s => s.user_id)).size;
                 const totalSubmissions = submissions.length;
-                const totalPoints = submissions.reduce((sum, s) => sum + (s.points_earned || 0), 0);
+
+                // Landkrabbor = folk på waitlist (inte skeppat än)
+                const landcrabs = waitlistRes.count || 0;
 
                 // Månadens batch
                 const batchMonth = batchRes.data?.month ?
@@ -969,9 +972,9 @@
 
                 // Update stats with IDs
                 document.getElementById('stat-shippers').textContent = uniqueShippers;
-                document.getElementById('stat-ships').textContent = totalSubmissions;
+                document.getElementById('stat-landcrabs').textContent = landcrabs;
                 document.getElementById('stat-batch').textContent = batchMonth;
-                document.getElementById('stat-points').textContent = totalPoints;
+                document.getElementById('stat-ships').textContent = totalSubmissions;
 
                 // Load recent submissions
                 await loadRecentSubmissions();
