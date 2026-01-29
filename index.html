@@ -261,7 +261,7 @@
         body.light-theme .countdown-segment { background: rgba(255,255,255,0.5); }
     </style>
 </head>
-<body>
+<body class="light-theme">
 
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
@@ -327,7 +327,7 @@
             <!-- RIGHT ACTIONS -->
             <div class="flex items-center gap-4">
                 <button id="theme-toggle" class="theme-toggle" aria-label="Växla tema">
-                    <i class="ph ph-sun"></i>
+                    <i class="ph ph-moon"></i>
                 </button>
 
                 <!-- Auth buttons (logged out) -->
@@ -1208,9 +1208,9 @@
         const body = document.body;
 
         const savedTheme = localStorage.getItem('varvet_theme');
-        if (savedTheme === 'light') {
-            body.classList.add('light-theme');
-            themeToggleBtn.innerHTML = '<i class="ph ph-moon"></i>';
+        if (savedTheme === 'dark') {
+            body.classList.remove('light-theme');
+            themeToggleBtn.innerHTML = '<i class="ph ph-sun"></i>';
         }
 
         themeToggleBtn.addEventListener('click', () => {
