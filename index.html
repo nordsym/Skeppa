@@ -251,14 +251,97 @@
         body.light-theme .leaderboard-row:hover { background: rgba(0,0,0,0.03); }
         .rank-number { font-family: 'DM Serif Display'; font-size: 1.25rem; color: var(--text-primary); }
 
-        /* Countdown */
-        .countdown-segment {
-            background: rgba(0,0,0,0.2);
-            /* KRITA-UPDATE: Tjockare kant */
-            border: 2px solid var(--chalk-line);
-            padding: 0.5rem; min-width: 60px; border-radius: 4px;
+        /* Flip Clock */
+        .flip-clock {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            perspective: 400px;
         }
-        body.light-theme .countdown-segment { background: rgba(255,255,255,0.5); }
+        .flip-segment {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .flip-card {
+            position: relative;
+            width: 60px;
+            height: 70px;
+            perspective: 200px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .flip-card .top,
+        .flip-card .bottom {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: var(--glass-bg);
+            border: 2px solid var(--chalk-line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flip-card .top {
+            top: 0;
+            border-radius: 6px 6px 0 0;
+            border-bottom: 1px solid var(--chalk-line);
+            align-items: flex-end;
+            padding-bottom: 2px;
+        }
+        .flip-card .bottom {
+            bottom: 0;
+            border-radius: 0 0 6px 6px;
+            border-top: none;
+            align-items: flex-start;
+            padding-top: 2px;
+        }
+        .flip-card .top::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 90%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--chalk-line), transparent);
+        }
+        .flip-card .number {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        .flip-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        /* Flip animation */
+        .flip-card.flipping .top {
+            animation: flipTop 0.3s ease-in forwards;
+        }
+        .flip-card.flipping .bottom {
+            animation: flipBottom 0.3s 0.15s ease-out forwards;
+        }
+        @keyframes flipTop {
+            0% { transform: rotateX(0deg); }
+            100% { transform: rotateX(-90deg); }
+        }
+        @keyframes flipBottom {
+            0% { transform: rotateX(90deg); }
+            100% { transform: rotateX(0deg); }
+        }
+        body.light-theme .flip-card .top,
+        body.light-theme .flip-card .bottom {
+            background: rgba(255,255,255,0.8);
+        }
     </style>
 </head>
 <body class="light-theme">
@@ -384,18 +467,33 @@
                 <div class="text-center mb-4">
                     <span id="countdown-label" class="text-sm uppercase tracking-widest text-[var(--cyan)]">Skeppas i Februari</span>
                 </div>
-                <div class="flex justify-center gap-3 font-mono text-sm mb-12">
-                    <div class="countdown-segment">
-                        <div class="text-xl text-[var(--text-primary)] font-bold" id="countdown-days">02</div>
-                        <div class="text-xs text-[var(--text-secondary)]">DGR</div>
+                <div class="flip-clock mb-12">
+                    <div class="flip-segment">
+                        <div class="flip-card" id="flip-days">
+                            <div class="flip-card-inner">
+                                <div class="top"><span class="number">02</span></div>
+                                <div class="bottom"><span class="number">02</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-label">Dagar</div>
                     </div>
-                    <div class="countdown-segment">
-                        <div class="text-xl text-[var(--text-primary)] font-bold" id="countdown-hours">00</div>
-                        <div class="text-xs text-[var(--text-secondary)]">TIM</div>
+                    <div class="flip-segment">
+                        <div class="flip-card" id="flip-hours">
+                            <div class="flip-card-inner">
+                                <div class="top"><span class="number">00</span></div>
+                                <div class="bottom"><span class="number">00</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-label">Timmar</div>
                     </div>
-                    <div class="countdown-segment">
-                        <div class="text-xl text-[var(--text-primary)] font-bold" id="countdown-mins">00</div>
-                        <div class="text-xs text-[var(--text-secondary)]">MIN</div>
+                    <div class="flip-segment">
+                        <div class="flip-card" id="flip-mins">
+                            <div class="flip-card-inner">
+                                <div class="top"><span class="number">00</span></div>
+                                <div class="bottom"><span class="number">00</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-label">Minuter</div>
                     </div>
                 </div>
             </div>
@@ -1216,46 +1314,75 @@
         // =============================================
         // THEME MANAGER
         // =============================================
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const body = document.body;
+        (function initTheme() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const body = document.body;
 
-        // Default = light, load saved preference
-        const savedTheme = localStorage.getItem('skeppa_theme');
-        if (savedTheme === 'dark') {
-            body.classList.remove('light-theme');
-            themeToggleBtn.innerHTML = '<i class="ph ph-sun"></i>';
-        } else {
-            // Light is default, show moon icon to switch to dark
-            themeToggleBtn.innerHTML = '<i class="ph ph-moon"></i>';
-        }
+            if (!themeToggleBtn) {
+                console.error('Theme toggle button not found');
+                return;
+            }
 
-        themeToggleBtn.addEventListener('click', () => {
-            body.classList.toggle('light-theme');
-            const isLight = body.classList.contains('light-theme');
-            localStorage.setItem('skeppa_theme', isLight ? 'light' : 'dark');
-            themeToggleBtn.innerHTML = isLight ? '<i class="ph ph-moon"></i>' : '<i class="ph ph-sun"></i>';
-        });
+            // Default = light, load saved preference
+            const savedTheme = localStorage.getItem('skeppa_theme');
+            if (savedTheme === 'dark') {
+                body.classList.remove('light-theme');
+                themeToggleBtn.innerHTML = '<i class="ph ph-sun"></i>';
+            } else {
+                body.classList.add('light-theme');
+                themeToggleBtn.innerHTML = '<i class="ph ph-moon"></i>';
+            }
+
+            themeToggleBtn.onclick = function() {
+                body.classList.toggle('light-theme');
+                const isLight = body.classList.contains('light-theme');
+                localStorage.setItem('skeppa_theme', isLight ? 'light' : 'dark');
+                this.innerHTML = isLight ? '<i class="ph ph-moon"></i>' : '<i class="ph ph-sun"></i>';
+                console.log('Theme switched to:', isLight ? 'light' : 'dark');
+            };
+        })();
 
         // =============================================
-        // COUNTDOWN TIMER - Countdown to 1 Feb 00:01
+        // FLIP CLOCK COUNTDOWN - Countdown to 1 Feb 00:01
         // =============================================
         (function initCountdown() {
+            let prevValues = { days: null, hours: null, mins: null };
+
+            function updateFlipCard(cardId, value) {
+                const card = document.getElementById(cardId);
+                if (!card) return;
+
+                const topNum = card.querySelector('.top .number');
+                const bottomNum = card.querySelector('.bottom .number');
+                const formattedValue = value < 10 ? '0' + value : String(value);
+
+                if (topNum.textContent !== formattedValue) {
+                    // Trigger flip animation
+                    card.classList.add('flipping');
+
+                    // Update numbers after animation starts
+                    setTimeout(() => {
+                        topNum.textContent = formattedValue;
+                        bottomNum.textContent = formattedValue;
+                    }, 150);
+
+                    // Remove animation class
+                    setTimeout(() => {
+                        card.classList.remove('flipping');
+                    }, 450);
+                }
+            }
+
             function updateTimer() {
                 const now = new Date();
-                // Target: 1 Feb 2025 at 00:01 (Swedish time)
-                const target = new Date(2025, 1, 1, 0, 1, 0); // Month is 0-indexed, so 1 = February
+                // Target: 1 Feb 2026 at 00:01 (Swedish time)
+                const target = new Date(2026, 1, 1, 0, 1, 0);
                 const diff = target - now;
 
-                const daysEl = document.getElementById('countdown-days');
-                const hoursEl = document.getElementById('countdown-hours');
-                const minsEl = document.getElementById('countdown-mins');
-
-                if (!daysEl || !hoursEl || !minsEl) return;
-
                 if (diff <= 0) {
-                    daysEl.textContent = '00';
-                    hoursEl.textContent = '00';
-                    minsEl.textContent = '00';
+                    updateFlipCard('flip-days', 0);
+                    updateFlipCard('flip-hours', 0);
+                    updateFlipCard('flip-mins', 0);
                     return;
                 }
 
@@ -1263,15 +1390,15 @@
                 const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-                daysEl.textContent = d < 10 ? '0' + d : d;
-                hoursEl.textContent = h < 10 ? '0' + h : h;
-                minsEl.textContent = m < 10 ? '0' + m : m;
+                updateFlipCard('flip-days', d);
+                updateFlipCard('flip-hours', h);
+                updateFlipCard('flip-mins', m);
             }
 
             // Run immediately
             updateTimer();
-            // Update every minute
-            setInterval(updateTimer, 60000);
+            // Update every second for smooth minute transitions
+            setInterval(updateTimer, 1000);
         })();
 
         // =============================================
