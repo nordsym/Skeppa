@@ -313,7 +313,7 @@
                 <img src="https://raw.githubusercontent.com/GusHem/Logga-utan-text/refs/heads/main/Final%20logo%20no%20text.svg" alt="NordSym" class="h-10 opacity-90 group-hover:opacity-100 transition-opacity">
                 <div class="flex flex-col">
                     <span class="brand-font text-xl leading-none tracking-wide text-[var(--text-primary)]">SKEPPA.NU</span>
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-[var(--cyan)]">Shipyard</span>
+                    <span class="text-[10px] uppercase tracking-[0.2em] text-[var(--cyan)]">Skeppa NU</span>
                 </div>
             </a>
 
@@ -334,7 +334,7 @@
                 <div id="auth-buttons" class="flex items-center gap-2">
                     <button onclick="openAuthModal('login')" class="btn-ghost hidden sm:block">Logga in</button>
                     <button onclick="openAuthModal('signup')" class="btn-primary flex items-center gap-2">
-                        <i class="ph-hammer"></i> <span class="hidden sm:inline">Börja Bygga</span>
+                        <i class="ph-hammer"></i> <span class="hidden sm:inline">Skeppa NU</span>
                     </button>
                 </div>
 
@@ -381,17 +381,20 @@
                 </p>
 
                 <!-- COUNTDOWN -->
+                <div class="text-center mb-4">
+                    <span id="countdown-label" class="text-sm uppercase tracking-widest text-[var(--cyan)]">Skeppas i Februari</span>
+                </div>
                 <div class="flex justify-center gap-3 font-mono text-sm mb-12">
                     <div class="countdown-segment">
-                        <div class="text-xl text-[var(--text-primary)] font-bold" id="days">12</div>
+                        <div class="text-xl text-[var(--text-primary)] font-bold" id="days">--</div>
                         <div class="text-xs text-[var(--text-secondary)]">DGR</div>
                     </div>
                     <div class="countdown-segment">
-                        <div class="text-xl text-[var(--text-primary)] font-bold" id="hours">04</div>
+                        <div class="text-xl text-[var(--text-primary)] font-bold" id="hours">--</div>
                         <div class="text-xs text-[var(--text-secondary)]">TIM</div>
                     </div>
                     <div class="countdown-segment">
-                        <div class="text-xl text-[var(--text-primary)] font-bold" id="mins">32</div>
+                        <div class="text-xl text-[var(--text-primary)] font-bold" id="mins">--</div>
                         <div class="text-xs text-[var(--text-secondary)]">MIN</div>
                     </div>
                 </div>
@@ -1216,32 +1219,50 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         const body = document.body;
 
-        const savedTheme = localStorage.getItem('varvet_theme');
+        // Default = light, load saved preference
+        const savedTheme = localStorage.getItem('skeppa_theme');
         if (savedTheme === 'dark') {
             body.classList.remove('light-theme');
             themeToggleBtn.innerHTML = '<i class="ph ph-sun"></i>';
+        } else {
+            // Light is default, show moon icon to switch to dark
+            themeToggleBtn.innerHTML = '<i class="ph ph-moon"></i>';
         }
 
         themeToggleBtn.addEventListener('click', () => {
             body.classList.toggle('light-theme');
             const isLight = body.classList.contains('light-theme');
-            localStorage.setItem('varvet_theme', isLight ? 'light' : 'dark');
+            localStorage.setItem('skeppa_theme', isLight ? 'light' : 'dark');
             themeToggleBtn.innerHTML = isLight ? '<i class="ph ph-moon"></i>' : '<i class="ph ph-sun"></i>';
         });
 
         // =============================================
-        // COUNTDOWN TIMER
+        // COUNTDOWN TIMER - Countdown to next month (batch deadline)
         // =============================================
         function updateTimer() {
             const now = new Date();
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            const diff = endOfMonth - now;
+            // Target: 1st of next month at 00:00
+            const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+            const diff = nextMonth - now;
+
+            if (diff <= 0) {
+                document.getElementById('days').innerText = '00';
+                document.getElementById('hours').innerText = '00';
+                document.getElementById('mins').innerText = '00';
+                return;
+            }
+
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             document.getElementById('days').innerText = d < 10 ? '0'+d : d;
             document.getElementById('hours').innerText = h < 10 ? '0'+h : h;
             document.getElementById('mins').innerText = m < 10 ? '0'+m : m;
+
+            // Update countdown label with next month name
+            const nextMonthName = nextMonth.toLocaleDateString('sv-SE', { month: 'long' });
+            const label = document.getElementById('countdown-label');
+            if (label) label.textContent = `Skeppas i ${nextMonthName.charAt(0).toUpperCase() + nextMonthName.slice(1)}`;
         }
         setInterval(updateTimer, 60000);
         updateTimer();
