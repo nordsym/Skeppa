@@ -950,15 +950,21 @@
             </a>
 
             <!-- NAV (DESKTOP) -->
-            <nav class="hidden md:flex gap-8" id="main-nav">
+            <nav class="flex gap-8" id="main-nav" style="display: none;">
                 <button onclick="showSection('start')" class="nav-link active" data-target="start">Start</button>
                 <button onclick="showSection('leaderboard')" class="nav-link" data-target="leaderboard">Topplistan</button>
                 <button onclick="showSection('roadmap')" class="nav-link nav-user-only hidden" data-target="roadmap">Roadmap</button>
                 <button onclick="showSection('about')" class="nav-link" data-target="about">Hur funkar det?</button>
             </nav>
+            <style>
+                @media (min-width: 768px) {
+                    #main-nav { display: flex !important; }
+                    #mobile-menu-btn { display: none !important; }
+                }
+            </style>
 
             <!-- MOBILE MENU BUTTON -->
-            <button id="mobile-menu-btn" class="md:hidden p-2 text-[var(--text-primary)]" onclick="toggleMobileMenu()">
+            <button id="mobile-menu-btn" class="p-2 text-[var(--text-primary)]" onclick="toggleMobileMenu()">
                 <i class="ph ph-list text-2xl"></i>
             </button>
 
