@@ -980,7 +980,7 @@
                         <span id="user-name" class="hidden sm:inline text-[var(--text-primary)]">@user</span>
                         <i class="ph-caret-down text-xs" id="user-menu-arrow"></i>
                     </button>
-                    <div class="user-dropdown glass-panel p-2">
+                    <div class="user-dropdown glass-panel p-2" onclick="event.stopPropagation()">
                         <button onclick="closeUserMenu(); showSection('profile')" class="w-full text-left px-4 py-2 rounded hover:bg-[var(--cyan-dim)] text-[var(--text-primary)] flex items-center gap-2">
                             <i class="ph-user-circle"></i> Min Profil
                         </button>
