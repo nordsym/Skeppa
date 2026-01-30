@@ -3306,31 +3306,36 @@
 
                 // Listen for auth changes
                 db.auth.onAuthStateChange(async (event, session) => {
-                    if (session) {
-                        currentUser = session.user;
-                        const { data: profile } = await db
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', session.user.id)
-                            .single();
-                        currentProfile = profile;
+                    try {
+                        if (session) {
+                            currentUser = session.user;
+                            const { data: profiles } = await db
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', session.user.id)
+                                .limit(1);
+                            currentProfile = profiles && profiles.length > 0 ? profiles[0] : null;
 
-                        // Check if new user needs onboarding
-                        if (event === 'SIGNED_IN') {
-                            checkOnboarding();
+                            // Check if new user needs onboarding
+                            if (event === 'SIGNED_IN') {
+                                checkOnboarding();
+                            }
+
+                            // Check vote status
+                            await checkUserVoteStatus();
+                        } else {
+                            currentUser = null;
+                            currentProfile = null;
+                            window.hasVotedThisMonth = false;
+                            window.votedSubmissionId = null;
                         }
-
-                        // Check vote status
-                        await checkUserVoteStatus();
-                    } else {
-                        currentUser = null;
-                        currentProfile = null;
-                        window.hasVotedThisMonth = false;
-                        window.votedSubmissionId = null;
+                        updateAuthUI();
+                        // Reload dashboard data after auth state changes
+                        await loadDashboardData();
+                    } catch (err) {
+                        console.error('Auth state change error:', err);
+                        updateAuthUI();
                     }
-                    updateAuthUI();
-                    // Reload dashboard data after auth state changes
-                    await loadDashboardData();
                 });
 
                 // Load data
