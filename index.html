@@ -953,7 +953,7 @@
             <nav class="hidden md:flex gap-8" id="main-nav">
                 <button onclick="showSection('start')" class="nav-link active" data-target="start">Start</button>
                 <button onclick="showSection('leaderboard')" class="nav-link" data-target="leaderboard">Topplistan</button>
-                <button onclick="showSection('roadmap')" class="nav-link" data-target="roadmap">Roadmap</button>
+                <button onclick="showSection('roadmap')" class="nav-link nav-user-only hidden" data-target="roadmap">Roadmap</button>
                 <button onclick="showSection('about')" class="nav-link" data-target="about">Hur funkar det?</button>
             </nav>
 
@@ -963,11 +963,11 @@
             </button>
 
             <!-- MOBILE NAV -->
-            <div id="mobile-nav" class="hidden fixed inset-0 top-20 bg-[var(--bg)] z-40 p-6 md:hidden">
+            <div id="mobile-nav" class="hidden fixed inset-0 top-20 z-40 p-6 md:hidden" style="background: var(--bg); backdrop-filter: blur(10px);">
                 <nav class="flex flex-col gap-4">
                     <button onclick="showSection('start'); closeMobileMenu()" class="nav-link text-left text-lg py-3 border-b border-[var(--chalk-line)]" data-target="start">Start</button>
                     <button onclick="showSection('leaderboard'); closeMobileMenu()" class="nav-link text-left text-lg py-3 border-b border-[var(--chalk-line)]" data-target="leaderboard">Topplistan</button>
-                    <button onclick="showSection('roadmap'); closeMobileMenu()" class="nav-link text-left text-lg py-3 border-b border-[var(--chalk-line)]" data-target="roadmap">Roadmap</button>
+                    <button onclick="showSection('roadmap'); closeMobileMenu()" class="nav-link nav-user-only hidden text-left text-lg py-3 border-b border-[var(--chalk-line)]" data-target="roadmap">Roadmap</button>
                     <button onclick="showSection('about'); closeMobileMenu()" class="nav-link text-left text-lg py-3 border-b border-[var(--chalk-line)]" data-target="about">Hur funkar det?</button>
                 </nav>
             </div>
@@ -1022,9 +1022,12 @@
             <!-- HERO -->
             <div class="text-center mb-16 relative">
                 <!-- TEMA BADGE -->
-                <div class="inline-block px-5 py-3 rounded-2xl bg-gradient-to-r from-[rgba(107,159,255,0.1)] to-[rgba(177,156,217,0.1)] border border-[rgba(147,112,219,0.2)] mb-8">
-                    <div class="font-bold text-[var(--text-primary)] mb-1">Februari: Minimal Lovable Product</div>
-                    <p class="text-sm text-[var(--text-secondary)] max-w-md">Vad kan du bygga och skeppa på en månad? Skippa feature creep. Fokus på kärnan. Gör något folk faktiskt vill använda.</p>
+                <div class="inline-flex items-center gap-4 px-5 py-3 rounded-2xl bg-gradient-to-r from-[rgba(107,159,255,0.1)] to-[rgba(177,156,217,0.1)] border border-[rgba(147,112,219,0.2)] mb-8">
+                    <img src="https://raw.githubusercontent.com/nordsym/Skeppa/refs/heads/main/lovable-logo-icon.svg" alt="Lovable" class="w-10 h-10 flex-shrink-0">
+                    <div class="text-left">
+                        <div class="font-bold text-[var(--text-primary)] mb-1">Februari: Minimal Lovable Product</div>
+                        <p class="text-sm text-[var(--text-secondary)] max-w-md">Vad kan du bygga och skeppa på en månad? Skippa feature creep. Fokus på kärnan. Gör något folk faktiskt vill använda.</p>
+                    </div>
                 </div>
 
                 <h1 class="text-5xl md:text-7xl mb-6 leading-tight hero-title">
@@ -2088,6 +2091,7 @@
             const headerSkeppaCta = document.getElementById('header-skeppa-cta');
             const loginRequired = document.getElementById('login-required');
             const submitForm = document.getElementById('submit-form');
+            const userOnlyNavItems = document.querySelectorAll('.nav-user-only');
 
             if (currentUser && currentProfile) {
                 authButtons.classList.add('hidden');
@@ -2096,6 +2100,7 @@
                 headerSkeppaCta.classList.add('flex');
                 loginRequired.classList.add('hidden');
                 submitForm.classList.remove('hidden');
+                userOnlyNavItems.forEach(el => el.classList.remove('hidden'));
 
                 // Update user info
                 const initial = (currentProfile.username || currentProfile.display_name || 'U')[0].toUpperCase();
@@ -2107,6 +2112,7 @@
                 headerSkeppaCta.classList.add('hidden');
                 headerSkeppaCta.classList.remove('flex');
                 loginRequired.classList.remove('hidden');
+                userOnlyNavItems.forEach(el => el.classList.add('hidden'));
                 submitForm.classList.add('hidden');
             }
         }
