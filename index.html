@@ -2529,24 +2529,25 @@
         async function loadDashboardData() {
             try {
                 // Load stats from Supabase
-                const [submissionsRes, batchRes, waitlistRes] = await Promise.all([
+                const [submissionsRes, batchRes, profilesRes] = await Promise.all([
                     db.from('submissions').select('user_id, points_earned'),
                     db.from('batches').select('*').eq('is_active', true).single(),
-                    db.from('waitlist').select('id')
+                    db.from('profiles').select('id')
                 ]);
 
                 const submissions = submissionsRes.data || [];
-                const waitlist = waitlistRes.data || [];
+                const profiles = profilesRes.data || [];
 
-                // Debug: log waitlist result
-                console.log('Waitlist result:', waitlist.length, 'entries', waitlistRes.error ? 'Error: ' + waitlistRes.error.message : 'OK');
+                // Debug: log profiles result
+                console.log('Profiles result:', profiles.length, 'users', profilesRes.error ? 'Error: ' + profilesRes.error.message : 'OK');
 
                 // Skeppare = unika användare som har skeppat minst 1 gång
-                const uniqueShippers = new Set(submissions.map(s => s.user_id)).size;
+                const shipperIds = new Set(submissions.map(s => s.user_id));
+                const uniqueShippers = shipperIds.size;
                 const totalSubmissions = submissions.length;
 
-                // Landkrabbor = waitlist (anmält intresse, ej skeppat än)
-                const landcrabs = waitlist.length;
+                // Landkrabbor = registrerade users som INTE har skeppat
+                const landcrabs = profiles.filter(p => !shipperIds.has(p.id)).length;
 
                 // Månadens batch - capitalize first letter only (Jan, Feb, etc)
                 const batchMonth = batchRes.data?.month ?
