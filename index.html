@@ -1106,8 +1106,8 @@
                 <!-- Inline script to ensure countdown runs immediately -->
                 <script>
                 (function() {
-                    // Target: 1 Feb 2026 at 00:00 Swedish time (CET = UTC+1)
-                    const target = new Date('2026-02-01T00:00:00+01:00');
+                    // Target: 1 Apr 2026 at 00:00 Swedish time (CEST = UTC+2)
+                    const target = new Date('2026-04-01T00:00:00+02:00');
                     const now = new Date();
                     const diff = target - now;
                     if (diff > 0) {
@@ -3233,7 +3233,7 @@
         }
 
         // =============================================
-        // FLIP CLOCK COUNTDOWN - Countdown to 1 Feb 00:01
+        // FLIP CLOCK COUNTDOWN - Countdown to 1 Apr 00:01
         // =============================================
         function initCountdown() {
             function updateFlipCard(cardId, value) {
@@ -3246,17 +3246,17 @@
 
             function updateTimer() {
                 const now = new Date();
-                // Target: 1 Feb 2026 at 00:00 Swedish time (CET = UTC+1)
+                // Target: 1 Apr 2026 at 00:00 Swedish time (CEST = UTC+2)
                 // Using ISO format with timezone offset ensures correct time globally
-                const target = new Date('2026-02-01T00:00:00+01:00');
+                const target = new Date('2026-04-01T00:00:00+02:00');
                 const diff = target - now;
 
                 const countdownLabel = document.getElementById('countdown-label');
                 const flipClock = document.querySelector('.flip-clock');
 
                 if (diff <= 0) {
-                    // Countdown finished - show "Februari är här!" message
-                    if (countdownLabel) countdownLabel.textContent = 'Februari är här!';
+                    // Countdown finished - show "Mars är här!" message
+                    if (countdownLabel) countdownLabel.textContent = 'Mars är här!';
                     if (flipClock) flipClock.style.display = 'none';
                     return;
                 }
