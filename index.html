@@ -2450,8 +2450,25 @@
                 // Default points for submission
                 const points = 10;
 
-                // Insert submission
+                // Generate client-side UUID for submission
+                const submissionId = crypto.randomUUID();
+
+                // Upload screenshot FIRST if selected (before INSERT)
+                let screenshotUrl = null;
+                if (selectedScreenshot) {
+                    try {
+                        console.log('Uploading screenshot before INSERT...');
+                        screenshotUrl = await uploadScreenshot(currentUser.id, submissionId);
+                        console.log('Screenshot uploaded:', screenshotUrl);
+                    } catch (uploadErr) {
+                        console.warn('Screenshot upload failed:', uploadErr);
+                        // Continue without screenshot
+                    }
+                }
+
+                // Insert submission with screenshot_url included
                 const payload = {
+                    id: submissionId,
                     user_id: currentUser.id,
                     title,
                     url: url,
@@ -2461,7 +2478,8 @@
                     description,
                     tags,
                     batch_month: batchMonth,
-                    points_earned: points
+                    points_earned: points,
+                    screenshot_url: screenshotUrl
                 };
                 console.log('Insert payload:', payload);
                 console.log('Starting INSERT via fetch...');
@@ -2495,31 +2513,6 @@
                     throw error;
                 }
                 console.log('Insert success:', data);
-
-                // Upload screenshot if selected
-                if (selectedScreenshot && data) {
-                    try {
-                        console.log('Uploading screenshot...');
-                        const screenshotUrl = await uploadScreenshot(currentUser.id, data.id);
-                        console.log('Screenshot uploaded:', screenshotUrl);
-                        if (screenshotUrl) {
-                            // Update submission with screenshot URL
-                            await fetch(`https://qjouribmhkkhqdsieprs.supabase.co/rest/v1/submissions?id=eq.${data.id}`, {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'apikey': SUPABASE_KEY,
-                                    'Authorization': 'Bearer ' + SUPABASE_KEY
-                                },
-                                body: JSON.stringify({ screenshot_url: screenshotUrl })
-                            });
-                            console.log('Screenshot URL saved to submission');
-                        }
-                    } catch (uploadErr) {
-                        console.warn('Screenshot upload failed:', uploadErr);
-                        showToast('Bilden kunde inte laddas upp, men projektet är skeppat!', 'warning');
-                    }
-                }
 
                 console.log('Showing success toast and resetting...');
                 showToast(`Skeppat! +${points} poäng`, 'success');
