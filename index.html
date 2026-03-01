@@ -2784,16 +2784,18 @@
                 if (ub.badges) badgesByUser[ub.user_id].push(ub.badges);
             });
 
-            // Count submissions per user
-            const { data: subCounts } = await db
-                .from('submissions')
-                .select('user_id')
-                .in('user_id', userIds);
+            // Count submissions per user (only needed for all-time mode)
+            let submissionCounts = {};
+            if (mode !== 'monthly') {
+                const { data: subCounts } = await db
+                    .from('submissions')
+                    .select('user_id')
+                    .in('user_id', userIds);
 
-            const submissionCounts = {};
-            (subCounts || []).forEach(s => {
-                submissionCounts[s.user_id] = (submissionCounts[s.user_id] || 0) + 1;
-            });
+                (subCounts || []).forEach(s => {
+                    submissionCounts[s.user_id] = (submissionCounts[s.user_id] || 0) + 1;
+                });
+            }
 
             const header = container.querySelector('.leaderboard-header');
             const rankIcons = [
@@ -2805,7 +2807,7 @@
             // Build real user rows
             const realRows = leaders.map((user, i) => {
                 const userBadges = badgesByUser[user.id] || [];
-                const subCount = submissionCounts[user.id] || 0;
+                const subCount = mode === 'monthly' ? (user.submissions_count || 0) : (submissionCounts[user.id] || 0);
 
                 return `
                     <div class="leaderboard-row p-4 flex items-center">
