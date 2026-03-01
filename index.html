@@ -2571,10 +2571,10 @@
                 // Landkrabbor = registrerade users som INTE har skeppat
                 const landcrabs = profiles.filter(p => !shipperIds.has(p.id)).length;
 
-                // Månadens batch - capitalize first letter only (Jan, Feb, etc)
-                const batchMonth = batchRes.data?.month ?
-                    new Date(batchRes.data.month + '-01').toLocaleDateString('sv-SE', { month: 'short' }).replace('.', '').replace(/^./, c => c.toUpperCase()) :
-                    '—';
+                // Månadens batch - always show current month
+                const now = new Date();
+                const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const batchMonth = new Date(currentMonthStr + '-01').toLocaleDateString('sv-SE', { month: 'short' }).replace('.', '').replace(/^./, c => c.toUpperCase());
 
                 // Update stats with IDs
                 document.getElementById('stat-shippers').textContent = uniqueShippers;
