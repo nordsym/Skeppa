@@ -1,0 +1,49 @@
+# Skeppa.nu - Screenshot to Product Listing
+# https://skeppa.nu
+
+# LLM-optimized content
+# See: https://skeppa.nu/llms.txt
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# --- AI & LLM CRAWLERS ---
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# --- STANDARD SEARCH ENGINES ---
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /

@@ -1,0 +1,36 @@
+# Skeppa.nu - Screenshot to Product Listing
+
+> Transform product screenshots into ready-to-publish e-commerce listings.
+
+## About
+Skeppa is an AI tool that converts product images and screenshots into complete e-commerce listings. Upload a screenshot of any product, and Skeppa generates titles, descriptions, specifications, and pricing suggestions optimized for marketplaces.
+
+## Key Features
+- **Screenshot Analysis**: AI extracts product details from images
+- **Listing Generation**: Complete title, description, and specs
+- **Multi-Platform Export**: Optimized for Tradera, Blocket, Facebook Marketplace
+- **Swedish Market Focus**: Localized for Swedish e-commerce
+
+## How It Works
+1. Upload a product screenshot
+2. AI analyzes and extracts information
+3. Edit and customize the generated listing
+4. Export to your preferred marketplace
+
+## Perfect For
+- Resellers and vintage shops
+- Small e-commerce businesses
+- Marketplace sellers
+- Liquidation specialists
+
+## Supported Marketplaces
+- Tradera
+- Blocket
+- Facebook Marketplace
+- Shopify
+- Custom export
+
+## Contact
+- Website: https://skeppa.nu
+- Parent Company: NordSym AB (https://nordsym.com)
+- Email: contact@nordsym.com
