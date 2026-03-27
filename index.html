@@ -2122,6 +2122,14 @@
                         }
                     });
                     if (error) throw error;
+                    
+                    // NordSym Inbound Alert
+                    fetch('https://nordsym.app.n8n.cloud/webhook/inbound/skeppa', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({product: 'Skeppa', email: email, username: username, type: 'user.created'})
+                    }).catch(() => {});
+
                     showToast('Konto skapat! Kolla din mail för verifiering.', 'success');
                 }
                 closeAuthModal();
